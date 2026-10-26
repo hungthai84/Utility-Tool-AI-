@@ -69,6 +69,8 @@ export function ThemeProvider({
           setActiveNav(4);
         } else if (window.location.pathname.includes('/tools/image-to-prompt')) {
           setActiveNav(5);
+        } else if (window.location.pathname.includes('/tools/codepen-analyzer')) {
+          setActiveNav(6);
         }
       }
     });

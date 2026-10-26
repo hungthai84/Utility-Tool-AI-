@@ -79,9 +79,11 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
     height: number;
   } | null>(null);
   const [hoveredLabel, setHoveredLabel] = useState<string>('');
+  const [hoveredParent, setHoveredParent] = useState<string>('');
 
   // Selected element info
   const [selectedElement, setSelectedElement] = useState<XRaySelectedElementInfo | null>(null);
+  const [targetDepth, setTargetDepth] = useState<'element' | 'parent' | 'section'>('element');
 
   // Form states for the 4 core pieces of information:
   // 1. Page (Trang)
@@ -117,7 +119,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
     return () => cancelAnimationFrame(timer);
   }, [currentPageName]);
 
-  // Helper: Find human-friendly summary of an element
+  // Helper: Find human-friendly summary & technical hierarchy of an element
   const inspectElement = useCallback(
     (el: HTMLElement): XRaySelectedElementInfo => {
       const rect = el.getBoundingClientRect();
@@ -138,9 +140,64 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
       else summary = textSnippet ? `Khối <${tag}> "${textSnippet}"` : `Khối đối tượng <${tag}>`;
 
       const classNameStr = typeof el.className === 'string' ? el.className : '';
+      const firstClass = classNameStr ? classNameStr.split(' ').filter(Boolean)[0] : '';
       const suggestedSelector = el.id
         ? `#${el.id}`
-        : `${tag}${classNameStr ? '.' + classNameStr.split(' ')[0] : ''}`;
+        : `${tag}${firstClass ? '.' + firstClass : ''}`;
+
+      // Find semantic parent container in DOM hierarchy
+      let currentParent = el.parentElement;
+      let parentTag = '';
+      let parentSummary = '';
+      let parentSelector = '';
+
+      while (currentParent && currentParent !== document.body) {
+        const pTag = currentParent.tagName.toLowerCase();
+        const pClass = typeof currentParent.className === 'string' ? currentParent.className : '';
+        
+        if (
+          ['article', 'header', 'nav', 'aside', 'section', 'footer', 'form', 'main'].includes(pTag) ||
+          pClass.includes('card') ||
+          pClass.includes('box') ||
+          pClass.includes('container') ||
+          pClass.includes('modal') ||
+          pClass.includes('studio') ||
+          currentParent.id
+        ) {
+          parentTag = pTag;
+          const pText = (currentParent.innerText || currentParent.textContent || '').trim().replace(/\s+/g, ' ').substring(0, 45);
+          parentSummary = pText ? `Khung chứa <${pTag}> "${pText}"` : `Khung chứa <${pTag}>`;
+          parentSelector = currentParent.id
+            ? `#${currentParent.id}`
+            : `${pTag}${pClass ? '.' + pClass.split(' ').filter(Boolean)[0] : ''}`;
+          break;
+        }
+        currentParent = currentParent.parentElement;
+      }
+
+      // Determine Source File Mapping accurately
+      const fileSourceMap: Record<number, string> = {
+        0: 'components/TopSelection.tsx',
+        1: 'components/HeroToolSection.tsx',
+        2: 'components/VoiceStoryStudio/VoiceStoryStudio.tsx',
+        3: 'components/VideoToGifStudio/VideoToGifStudio.tsx',
+        4: 'components/BackgroundRemoverStudio/BackgroundRemoverStudio.tsx',
+        5: 'components/ImageToPromptStudio/ImageToPromptStudio.tsx',
+        6: 'components/CodePenAnalyzer/CodePenAnalyzerStudio.tsx',
+      };
+
+      let filePath = fileSourceMap[currentPageId] || 'app/page.tsx';
+
+      // Smart override based on DOM tree
+      if (el.closest('header') || tag === 'header' || classNameStr.includes('header')) {
+        filePath = 'components/Header.tsx';
+      } else if (el.closest('footer') || tag === 'footer') {
+        filePath = 'components/Footer.tsx';
+      } else if (el.closest('#news-section') || classNameStr.includes('news')) {
+        filePath = 'components/NewsSection.tsx';
+      } else if (el.closest('.sidebar') || classNameStr.includes('sidebar')) {
+        filePath = 'components/SidebarRight.tsx';
+      }
 
       return {
         tag,
@@ -150,10 +207,16 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
         rect: {
           top: rect.top + window.scrollY,
           left: rect.left + window.scrollX,
-          width: rect.width,
-          height: rect.height,
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
         },
         suggestedSelector,
+        parentTag,
+        parentSummary,
+        parentSelector,
+        filePath,
+        role: el.getAttribute('role') || tag,
+        ariaLabel: el.getAttribute('aria-label') || '',
         pageId: currentPageId,
         pageName: currentPageName,
       };
@@ -168,6 +231,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
     if (!next) {
       setHoveredRect(null);
       setHoveredLabel('');
+      setHoveredParent('');
     } else {
       showToast('Chế độ X-Ray đã bật: Di chuột & bấm trực tiếp vào đối tượng bất kỳ để chọn');
     }
@@ -198,6 +262,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
       if (target.closest('#xray-ui-root')) {
         setHoveredRect(null);
         setHoveredLabel('');
+        setHoveredParent('');
         return;
       }
 
@@ -205,13 +270,24 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
       setHoveredRect({
         top: rect.top,
         left: rect.left,
-        width: rect.width,
-        height: rect.height,
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
       });
 
       const tag = target.tagName.toLowerCase();
-      const text = (target.innerText || '').trim().replace(/\s+/g, ' ').substring(0, 32);
-      setHoveredLabel(`<${tag}> ${text ? '· ' + text : ''}`);
+      const text = (target.innerText || '').trim().replace(/\s+/g, ' ').substring(0, 28);
+      const cls = typeof target.className === 'string' ? target.className.split(' ').filter(Boolean)[0] : '';
+      const selectorText = `<${tag}${cls ? '.' + cls : ''}>`;
+
+      setHoveredLabel(`${selectorText} ${text ? '· "' + text + '"' : ''}`);
+
+      const parent = target.parentElement;
+      if (parent && parent !== document.body) {
+        const pTag = parent.tagName.toLowerCase();
+        setHoveredParent(`Bao bởi: <${pTag}>`);
+      } else {
+        setHoveredParent('');
+      }
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -227,14 +303,16 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
 
       const info = inspectElement(target);
       setSelectedElement(info);
+      setTargetDepth('element');
       setTargetObject(info.innerTextSummary);
       setTargetPage(currentPageName);
-      setGeneratedPrompt(''); // Clear previous generated prompt to prompt user to generate new
+      setGeneratedPrompt(''); // Clear previous prompt to prompt user to regenerate
 
       // Turn off inspect crosshair and open editor popup
       setIsActive(false);
       setHoveredRect(null);
       setHoveredLabel('');
+      setHoveredParent('');
       setIsEditorPopupOpen(true);
     };
 
@@ -250,7 +328,6 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
   // Global keyboard shortcut: Bật / Tắt chế độ X-Ray bằng phím X, nhấn Escape để hủy
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Bỏ qua nếu đang gõ văn bản trong input, textarea, select hoặc contenteditable
       const activeEl = document.activeElement;
       if (
         activeEl &&
@@ -277,6 +354,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
         setIsActive(false);
         setHoveredRect(null);
         setHoveredLabel('');
+        setHoveredParent('');
         showToast('Đã tắt chế độ X-Ray');
       }
     };
@@ -285,7 +363,21 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isActive, isEditorPopupOpen, isLibraryOpen, toggleXRayMode, showToast]);
 
-  // Generate 1-line concise Vietnamese prompt (tự động thêm ghi chú áp dụng giao diện Sáng & Tối)
+  // Switch target depth option (element vs parent card vs main section)
+  const handleSelectTargetDepth = (depth: 'element' | 'parent' | 'section') => {
+    setTargetDepth(depth);
+    if (!selectedElement) return;
+
+    if (depth === 'element') {
+      setTargetObject(selectedElement.innerTextSummary);
+    } else if (depth === 'parent') {
+      setTargetObject(selectedElement.parentSummary || `Khung chứa <${selectedElement.parentTag || 'div'}>`);
+    } else if (depth === 'section') {
+      setTargetObject(`Khu vực lớn ${targetPage} (${selectedElement.filePath || 'Component'})`);
+    }
+  };
+
+  // Generate 1-line concise Vietnamese prompt
   const handleGeneratePrompt = useCallback(() => {
     const actionObj = ACTION_OPTIONS.find((a) => a.type === actionType);
     const actionText = actionObj ? actionObj.label : 'Chỉnh sửa';
@@ -299,32 +391,18 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
 
     const objName = targetObject.trim() || 'Đối tượng được chọn';
     const tagInfo = selectedElement?.tag ? ` (<${selectedElement.tag}>)` : '';
+    const selectorInfo = selectedElement?.suggestedSelector ? ` [Selector: ${selectedElement.suggestedSelector}]` : '';
     const noteWithTheme = ensureLightDarkNote(actionCustomNote);
     const noteSegment = ` - ${noteWithTheme}`;
 
-    const fileSourceMap: Record<number, string> = {
-      0: 'components/TopSelection.tsx',
-      1: 'components/HeroToolSection.tsx',
-      2: 'components/VoiceStoryStudio/VoiceStoryStudio.tsx',
-      3: 'src/components/views/EducationView.tsx',
-      4: 'src/components/views/DomainsView.tsx',
-      5: 'src/components/views/ExperienceView.tsx',
-      6: 'src/components/views/SkillsView.tsx',
-      7: 'src/components/views/ProjectsView.tsx',
-      8: 'src/components/views/SystemsView.tsx',
-      9: 'src/components/views/InterviewView.tsx',
-      10: 'src/components/views/HoroscopeView.tsx',
-      11: 'src/components/views/MemoriesView.tsx',
-      12: 'src/components/views/ContactView.tsx',
-      13: 'src/components/views/WallpaperView.tsx',
-    };
-    const currentFilePath = fileSourceMap[currentPageId] || 'app/page.tsx';
-    const singleLinePrompt = `[Trang: ${targetPage} | File: ${currentFilePath}] Tại ${targetPage}, với ${objName}${tagInfo}: ${actionText}${noteSegment} (Phạm vi: ${pageScopeText} | Giao diện: ${LIGHT_DARK_NOTE}).`;
+    const currentFilePath = selectedElement?.filePath || 'app/page.tsx';
+
+    const singleLinePrompt = `[Trang: ${targetPage} | File: ${currentFilePath}] Tại ${targetPage}, với ${objName}${tagInfo}${selectorInfo}: ${actionText}${noteSegment} (Phạm vi: ${pageScopeText} | Giao diện: ${LIGHT_DARK_NOTE}).`;
 
     setGeneratedPrompt(singleLinePrompt);
     showToast('Đã sinh prompt tiếng Việt 1 dòng (kèm ghi chú Sáng & Tối)!');
     return singleLinePrompt;
-  }, [targetPage, targetObject, selectedElement, actionType, actionCustomNote, scope, currentPageId, showToast]);
+  }, [targetPage, targetObject, selectedElement, actionType, actionCustomNote, scope, showToast]);
 
   // Copy Prompt to clipboard & auto-close popup per user request
   const handleCopyPrompt = (textToCopy?: string) => {
@@ -336,14 +414,13 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
     } else {
       showToast('Sao chép thành công!');
     }
-    // Tự động tắt popup sau khi sao chép theo yêu cầu người dùng
     setTimeout(() => {
       setIsEditorPopupOpen(false);
       setIsLibraryOpen(false);
     }, 350);
   };
 
-  // Save Prompt to persistent templates library (tự động gắn ghi chú áp dụng giao diện sáng & tối khi thêm mới)
+  // Save Prompt to persistent templates library
   const handleSavePrompt = () => {
     const promptText = generatedPrompt || handleGeneratePrompt();
     if (!promptText) return;
@@ -389,7 +466,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
   return (
     <div id="xray-ui-root" className={`${isDark ? 'dark' : ''} fixed inset-0 pointer-events-none z-[9999] select-none`}>
       {/* ========================================================================= */}
-      {/* 1. NÚT NỔI X-RAY VÀ BỘ SƯU TẬP ĐÃ ẨN (BẬT / TẮT BẰNG PHÍM X)               */}
+      {/* 1. NÚT NỔI X-RAY VÀ THÔNG BÁO BẬT KHI DI CHUỘT (PHÍM X)                     */}
       {/* ========================================================================= */}
       {isActive && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] px-4 py-2 rounded-full bg-slate-950/95 text-white shadow-2xl border border-indigo-400 backdrop-blur-md flex items-center gap-3 animate-fadeIn pointer-events-auto">
@@ -415,7 +492,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
         <>
           {/* Overlay Box phát sáng theo đối tượng đang di chuột */}
           <div
-            className="fixed pointer-events-none z-[9998] transition-all duration-75 border-2 border-indigo-500 bg-indigo-500/15 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+            className="fixed pointer-events-none z-[9998] transition-all duration-75 border-2 border-indigo-500 bg-indigo-500/15 rounded-lg shadow-[0_0_20px_rgba(99,102,241,0.55)]"
             style={{
               top: `${hoveredRect.top}px`,
               left: `${hoveredRect.left}px`,
@@ -424,32 +501,36 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
             }}
           />
 
-          {/* Nhãn tag & tóm tắt hiển thị ngay phía trên đối tượng */}
+          {/* Nhãn tag & kích thước hiển thị ngay phía trên đối tượng */}
           <div
-            className="fixed pointer-events-none z-[9999] px-2.5 py-1 rounded-md bg-slate-950 text-white text-[11px] font-mono font-bold shadow-xl border border-indigo-400 flex items-center gap-1.5 whitespace-nowrap"
+            className="fixed pointer-events-none z-[9999] px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[11px] font-mono font-bold shadow-2xl border border-indigo-400 flex items-center gap-2 whitespace-nowrap"
             style={{
-              top: `${Math.max(8, hoveredRect.top - 28)}px`,
+              top: `${Math.max(8, hoveredRect.top - 32)}px`,
               left: `${Math.max(8, hoveredRect.left)}px`,
             }}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>{hoveredLabel || 'Đối tượng được chọn'}</span>
-            <span className="text-[9px] text-slate-400">(Nhấp để sửa)</span>
+            <span className="text-indigo-300 font-extrabold">{hoveredLabel || 'Đối tượng được chọn'}</span>
+            <span className="px-1.5 py-0.2 rounded bg-indigo-900/60 text-indigo-200 text-[10px]">
+              {hoveredRect.width}×{hoveredRect.height}px
+            </span>
+            {hoveredParent && <span className="text-slate-400 text-[10px]">({hoveredParent})</span>}
+            <span className="text-[9px] text-amber-300 font-sans font-semibold">· Nhấp để chọn</span>
           </div>
         </>
       )}
 
       {/* ========================================================================= */}
-      {/* 3. POPUP NHẬP YÊU CẦU CHỈNH SỬA & XÁC ĐỊNH 4 THÔNG TIN (SỬA LỖI CLICK)     */}
+      {/* 3. POPUP NHẬP YÊU CẦU CHỈNH SỬA & HIỂN THỊ CHI TIẾT ĐỐI TƯỢNG              */}
       {/* ========================================================================= */}
       {isEditorPopupOpen && (
         <div
           onClick={() => setIsEditorPopupOpen(false)}
-          className="fixed inset-0 z-[10000] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn pointer-events-auto select-auto"
+          className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn pointer-events-auto select-auto"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[14px] shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 max-h-[92vh] pointer-events-auto select-auto"
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[16px] shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 max-h-[92vh] pointer-events-auto select-auto"
           >
             {/* Header Popup */}
             <div className="p-4 sm:p-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600 text-white flex items-center justify-between shrink-0">
@@ -458,11 +539,14 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                   🎯
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black tracking-wide font-play">
-                    X-Ray Editor · Soạn yêu cầu chỉnh sửa
+                  <h3 className="text-base sm:text-lg font-black tracking-wide font-play flex items-center gap-2">
+                    <span>X-Ray Inspector</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 text-indigo-100 font-mono font-bold">
+                      Xác định 100% đối tượng
+                    </span>
                   </h3>
                   <p className="text-xs text-indigo-100/90 font-medium">
-                    Xác định đầy đủ 4 thông tin: Trang, Đối tượng, Hành động & Phạm vi áp dụng
+                    Tự động nhận diện HTML tag, CSS selector, parent container & file mã nguồn
                   </p>
                 </div>
               </div>
@@ -471,7 +555,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsLibraryOpen(true)}
-                  className="px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                   title="Xem thư viện mẫu đã lưu"
                 >
                   <span>📚 Thư viện</span>
@@ -488,13 +572,13 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
 
             {/* Body Form */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-left font-play">
-              {/* 4 THÔNG TIN CỐT LÕI */}
+              {/* 1. THÔNG TIN TRANG & 2. ĐỐI TƯỢNG ĐÃ CHỌN */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {/* 1. THÔNG TIN TRANG */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-1">
                   <label className="text-[11px] font-black tracking-wide text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                     <WebIcon name="compass" className="w-3.5 h-3.5" />
-                    <span>1. Trang xác định:</span>
+                    <span>1. Trang vị trí:</span>
                   </label>
                   <input
                     type="text"
@@ -503,16 +587,17 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                     className="w-full px-3 py-1.5 text-xs font-black rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Tên trang..."
                   />
-                  <span className="text-[10px] text-slate-400">
-                    Trang hiện tại: {currentPageName} (ID: {currentPageId})
-                  </span>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                    <span>ID: #{currentPageId}</span>
+                    <span className="text-indigo-500 font-bold">{selectedElement?.filePath || 'components/Header.tsx'}</span>
+                  </div>
                 </div>
 
-                {/* 2. ĐỐI TƯỢNG ĐÃ CHỌN */}
+                {/* 2. ĐỐI TƯỢNG CHỈNH SỬA */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-1">
                   <label className="text-[11px] font-black tracking-wide text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
                     <WebIcon name="target" className="w-3.5 h-3.5" />
-                    <span>2. Đối tượng chỉnh sửa:</span>
+                    <span>2. Mô tả đối tượng:</span>
                   </label>
                   <input
                     type="text"
@@ -521,15 +606,126 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                     className="w-full px-3 py-1.5 text-xs font-black rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Mô tả đối tượng..."
                   />
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                    <span>Thẻ HTML:</span>
-                    <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1 rounded text-purple-700 dark:text-purple-300">
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <span>Tag:</span>
+                    <code className="font-mono bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-1.5 py-0.2 rounded font-bold">
                       &lt;{selectedElement?.tag || 'element'}&gt;
                     </code>
-                    {selectedElement?.id && <span>ID: #{selectedElement.id}</span>}
+                    {selectedElement?.suggestedSelector && (
+                      <span className="truncate max-w-[150px] font-mono text-slate-500">
+                        {selectedElement.suggestedSelector}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* BỘ LỌC TỰ ĐỘNG CHỌN CẤP ĐỘ ĐỐI TƯỢNG (ELEMENT / PARENT CARD / SECTION) */}
+              <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 space-y-2">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-extrabold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                    <WebIcon name="layers" className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Chọn cấp độ đối tượng chính xác:</span>
+                  </span>
+                  <span className="text-[10px] text-slate-500">Bấm để tự động cập nhật tên đối tượng</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTargetDepth('element')}
+                    className={`p-2 rounded-xl text-xs font-bold border transition text-left flex flex-col gap-0.5 cursor-pointer ${
+                      targetDepth === 'element'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <span>🎯 Phần tử nhỏ</span>
+                    </span>
+                    <span className="text-[10px] opacity-80 truncate font-mono">
+                      &lt;{selectedElement?.tag || 'element'}&gt; {selectedElement?.innerTextSummary.substring(0, 20)}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTargetDepth('parent')}
+                    className={`p-2 rounded-xl text-xs font-bold border transition text-left flex flex-col gap-0.5 cursor-pointer ${
+                      targetDepth === 'parent'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <span>📦 Khung chứa (Card/Box)</span>
+                    </span>
+                    <span className="text-[10px] opacity-80 truncate font-mono">
+                      &lt;{selectedElement?.parentTag || 'div'}&gt; {selectedElement?.parentSelector || 'Parent Container'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTargetDepth('section')}
+                    className={`p-2 rounded-xl text-xs font-bold border transition text-left flex flex-col gap-0.5 cursor-pointer ${
+                      targetDepth === 'section'
+                        ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <span>🏛️ Toàn bộ khu vực</span>
+                    </span>
+                    <span className="text-[10px] opacity-80 truncate font-mono">
+                      {selectedElement?.filePath || 'Component Section'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KHUNG THÔNG TIN KỸ THUẬT CHI TIẾT CỦA ĐỐI TƯỢNG */}
+              {selectedElement && (
+                <div className="p-3.5 rounded-2xl bg-slate-100/90 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-sans font-bold border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                      <WebIcon name="file-text" className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Thông tin kỹ thuật xác thực:</span>
+                    </span>
+                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" /> Exact Match
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                    <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <span className="text-[9px] text-slate-400 block font-sans">Thẻ HTML:</span>
+                      <span className="font-black text-purple-600 dark:text-purple-400">&lt;{selectedElement.tag}&gt;</span>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <span className="text-[9px] text-slate-400 block font-sans">Selector CSS:</span>
+                      <span className="font-black text-indigo-600 dark:text-indigo-400 truncate block">
+                        {selectedElement.suggestedSelector || `<${selectedElement.tag}>`}
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <span className="text-[9px] text-slate-400 block font-sans">Kích thước:</span>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400">
+                        {selectedElement.rect.width}×{selectedElement.rect.height}px
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <span className="text-[9px] text-slate-400 block font-sans">File mã nguồn:</span>
+                      <span className="font-black text-amber-600 dark:text-amber-400 truncate block">
+                        {selectedElement.filePath}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* 3. HÀNH ĐỘNG (ACTION TYPE) */}
               <div className="space-y-2">
@@ -570,7 +766,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                 {/* Ghi chú tự động khi thêm mới: Đều áp dụng cho cả giao diện Sáng & Tối */}
                 <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-[11px] text-amber-800 dark:text-amber-300">
                   <span className="font-bold flex items-center gap-1.5">
-                    <span>🌓 Ghi chú khi thêm mới:</span>
+                    <span>🌓 Ghi chú giao diện:</span>
                     <span className="font-extrabold">{LIGHT_DARK_NOTE}</span>
                   </span>
                   <button
@@ -578,7 +774,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                     onClick={() => setActionCustomNote((prev) => ensureLightDarkNote(prev))}
                     className="px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 dark:text-amber-200 font-bold text-[10px] transition cursor-pointer"
                   >
-                    + Đính kèm ngay vào ô ghi chú
+                    + Đính kèm ngay
                   </button>
                 </div>
               </div>
@@ -655,7 +851,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                   <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/50 mt-2 text-xs text-indigo-900 dark:text-indigo-300 space-y-1">
                     <span className="font-extrabold block">Quy tắc sinh prompt:</span>
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                      Yêu cầu sẽ được chuẩn hóa thành <strong>1 câu tiếng Việt ngắn gọn</strong> ghi rõ vị trí trang, đối tượng HTML, loại hành động, phạm vi áp dụng và <strong>đều áp dụng đồng bộ cho cả giao diện Sáng &amp; Tối</strong>.
+                      Prompt được sinh ra chuẩn <strong>1 câu tiếng Việt</strong> ghi rõ trang, file mã nguồn, HTML tag &amp; CSS selector chính xác, loại hành động và <strong>áp dụng đồng bộ cho cả giao diện Sáng &amp; Tối</strong>.
                     </p>
                   </div>
                 </div>
@@ -669,7 +865,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                   className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white text-xs font-black shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <WebIcon name="sparkles" className="w-4 h-4" />
-                  <span>Tạo Prompt 1 dòng</span>
+                  <span>Tạo Prompt 1 dòng xác định 100%</span>
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -709,7 +905,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
                   <div className="flex items-center justify-between text-[11px] font-black text-indigo-700 dark:text-indigo-400">
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      <span>Kết quả Prompt hoàn chỉnh (1 dòng):</span>
+                      <span>Kết quả Prompt hoàn chỉnh (1 dòng xác định đối tượng):</span>
                     </span>
                     <button
                       type="button"
@@ -730,7 +926,7 @@ export const XRayEditor: React.FC<XRayEditorProps> = ({
             <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700/80 flex items-center justify-between text-xs text-slate-500">
               <span className="flex items-center gap-1.5">
                 <WebIcon name="shield" className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Không làm thay đổi mã hay chức năng trang web khi chưa xác nhận.</span>
+                <span>X-Ray Inspector chỉ sinh prompt mô tả, không tự ý sửa mã trực tiếp.</span>
               </span>
 
               <button

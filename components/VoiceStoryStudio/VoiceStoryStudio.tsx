@@ -829,24 +829,26 @@ export const VoiceStoryStudio: React.FC = () => {
         />
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-5">
           <div className="space-y-1.5 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 max-w-full">
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold max-w-full shrink-0 sm:shrink transition-all duration-200 hover:scale-[1.02] shadow-sm ${
                   isDark
-                    ? 'bg-purple-500/20 border-purple-500/30 text-purple-300'
-                    : 'bg-white/90 border-purple-300 text-purple-700 shadow-sm'
+                    ? 'bg-purple-500/20 border-purple-500/35 text-purple-200 shadow-purple-900/20'
+                    : 'bg-white/95 border-purple-300 text-purple-800 shadow-purple-500/10'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" /> AI Giọng Đọc Đa Nhân Vật • Song Ngữ VI / EN
+                <Sparkles className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+                <span className="truncate">AI Giọng Đọc Đa Nhân Vật • Song Ngữ VI / EN</span>
               </span>
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold max-w-full shrink-0 sm:shrink transition-all duration-200 hover:scale-[1.02] shadow-sm ${
                   isDark
-                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-300'
-                    : 'bg-amber-50 border-amber-300 text-amber-800 shadow-sm'
+                    ? 'bg-amber-500/20 border-amber-500/35 text-amber-200 shadow-amber-900/20'
+                    : 'bg-amber-50/95 border-amber-300 text-amber-900 shadow-amber-500/10'
                 }`}
               >
-                <MapPin className="w-3.5 h-3.5" /> Chuẩn Giọng Vùng Miền Bắc • Trung • Nam • Tây Nguyên
+                <MapPin className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                <span className="truncate">Chuẩn Giọng Vùng Miền Bắc • Trung • Nam • Tây Nguyên</span>
               </span>
             </div>
             <h1
@@ -933,43 +935,7 @@ export const VoiceStoryStudio: React.FC = () => {
               </button>
             </div>
 
-            {/* Light / Dark Mode Segmented Switcher */}
-            <div
-              className={`inline-flex items-center p-1 rounded-[14px] border transition-colors ${
-                isDark
-                  ? 'bg-black/35 border-white/15'
-                  : 'bg-white/90 border-slate-200 shadow-sm'
-              }`}
-              role="group"
-              aria-label="Chuyển đổi giao diện Sáng và Tối"
-            >
-              <button
-                type="button"
-                onClick={() => setTheme('light')}
-                className={`px-2.5 py-1.5 rounded-[10px] text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  !isDark
-                    ? 'bg-amber-500 text-white shadow-sm'
-                    : 'text-gray-300 hover:text-white'
-                }`}
-                title="Chuyển sang Giao diện Sáng (Light Mode)"
-              >
-                <Sun className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sáng</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme('dark')}
-                className={`px-2.5 py-1.5 rounded-[10px] text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  isDark
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                title="Chuyển sang Giao diện Tối (Dark Mode)"
-              >
-                <Moon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Tối</span>
-              </button>
-            </div>
+
 
             {isEditing ? (
               <button

@@ -15,7 +15,15 @@ import {
   Scissors,
   ScanEye,
   Sparkles,
+  Volume2,
+  Play,
+  CheckCircle2,
+  Layers,
+  Cpu,
+  Maximize2,
 } from 'lucide-react';
+import { StudioShowcaseCards } from '@/components/Lucian/StudioShowcaseCards';
+
 
 export function TopSelection() {
   const { isDark, searchQuery, setActiveWizardTool, setActiveNav } = useTheme();
@@ -86,6 +94,13 @@ export function TopSelection() {
       icon: <ScanEye size={14} />,
       bg: 'from-emerald-500 to-teal-600',
       onClick: () => setActiveNav(5),
+    },
+    {
+      key: 'codepen',
+      label: 'CodePen Analyzer Studio',
+      icon: <Code2 size={14} />,
+      bg: 'from-amber-500 to-orange-600',
+      onClick: () => setActiveNav(6),
     },
   ];
 
@@ -206,6 +221,22 @@ export function TopSelection() {
         { text: 'Multi-Prompt', color: '#06b6d4' },
       ],
     },
+    {
+      key: 'codepen_analyzer',
+      toolType: 'codepen_analyzer',
+      title: 'CodePen Analyzer Studio — Dịch ngược & Xuất Code',
+      subTitle: 'Phân tích URL CodePen, 21 mục UI/UX & Keyframe, tạo Master Prompt & React 19',
+      image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80',
+      author: 'CodePen Reverse Suite',
+      usage: '215.3K sử dụng',
+      stepBadge: 'Reverse Engineer AI',
+      catIndex: 1,
+      tags: [
+        { text: 'CodePen', color: '#f59e0b' },
+        { text: 'React 19', color: '#10b981' },
+      ],
+    },
   ];
 
   const getToolTypeBadgeIcon = (toolType: string) => {
@@ -226,6 +257,8 @@ export function TopSelection() {
         return <Scissors size={13} className="text-white" />;
       case 'image_to_prompt':
         return <ScanEye size={13} className="text-white" />;
+      case 'codepen_analyzer':
+        return <Code2 size={13} className="text-white" />;
       default:
         return <Sparkles size={13} className="text-white" />;
     }
@@ -288,6 +321,9 @@ export function TopSelection() {
           <span>Sẵn sàng sử dụng</span>
         </div>
       </div>
+
+      {/* Bộ Thẻ Studio Chuyên Sâu Tương Ứng Với Demo Trực Quan (Lucian UX/UI #050 Spotlight Tilt) */}
+      <StudioShowcaseCards />
 
       <div className="flex flex-col lg:flex-row items-start gap-6">
         {/* Category List */}
@@ -365,6 +401,8 @@ export function TopSelection() {
                   setActiveNav(4);
                 } else if (item.toolType === 'image_to_prompt') {
                   setActiveNav(5);
+                } else if (item.toolType === 'codepen_analyzer') {
+                  setActiveNav(6);
                 } else {
                   setActiveWizardTool(item.toolType);
                 }

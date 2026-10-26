@@ -21,6 +21,12 @@ export interface XRaySelectedElementInfo {
     height: number;
   };
   suggestedSelector: string;
+  parentTag?: string;
+  parentSummary?: string;
+  parentSelector?: string;
+  role?: string;
+  ariaLabel?: string;
+  filePath?: string;
   pageId: number;
   pageName: string;
 }

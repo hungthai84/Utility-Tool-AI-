@@ -145,7 +145,10 @@ export const ImageToPromptStudio: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const itemsRef = useRef<ImagePromptQueueItem[]>([]);
-  itemsRef.current = items;
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const allTemplates = useMemo(
     () => [...PROMPT_TEMPLATES, ...customTemplates],
@@ -162,26 +165,6 @@ export const ImageToPromptStudio: React.FC = () => {
     [targetTool]
   );
 
-  // Hỗ trợ dán ảnh từ Clipboard (Ctrl + V)
-  useEffect(() => {
-    const onPaste = async (e: ClipboardEvent) => {
-      if (!e.clipboardData) return;
-      const files: File[] = [];
-      for (let i = 0; i < e.clipboardData.items.length; i++) {
-        const item = e.clipboardData.items[i];
-        if (item.type.startsWith('image/')) {
-          const f = item.getAsFile();
-          if (f) files.push(f);
-        }
-      }
-      if (files.length > 0) {
-        e.preventDefault();
-        await handleAddImagesToQueue(files);
-      }
-    };
-    window.addEventListener('paste', onPaste);
-    return () => window.removeEventListener('paste', onPaste);
-  });
 
   // BƯỚC 1: NHẬP HÌNH ẢNH VÀ TRÍCH XUẤT TELEMETRY THỰC TẾ
   const handleAddImagesToQueue = async (rawFiles: FileList | File[]) => {
@@ -262,6 +245,27 @@ export const ImageToPromptStudio: React.FC = () => {
       }
     }
   };
+
+  // Hỗ trợ dán ảnh từ Clipboard (Ctrl + V)
+  useEffect(() => {
+    const onPaste = async (e: ClipboardEvent) => {
+      if (!e.clipboardData) return;
+      const files: File[] = [];
+      for (let i = 0; i < e.clipboardData.items.length; i++) {
+        const item = e.clipboardData.items[i];
+        if (item.type.startsWith('image/')) {
+          const f = item.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (files.length > 0) {
+        e.preventDefault();
+        await handleAddImagesToQueue(files);
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, []);
 
   // BƯỚC 10: PHÂN TÍCH 1 ẢNH QUA GEMINI MULTIMODAL API (CÓ RETRY & TELEMETRY MERGE)
   const analyzeSingleQueueItem = async (itemId: string): Promise<boolean> => {

@@ -16,6 +16,8 @@ import { VoiceStoryStudio } from '@/components/VoiceStoryStudio/VoiceStoryStudio
 import { VideoToGifStudio } from '@/components/VideoToGifStudio/VideoToGifStudio';
 import { BackgroundRemoverStudio } from '@/components/BackgroundRemoverStudio/BackgroundRemoverStudio';
 import { ImageToPromptStudio } from '@/components/ImageToPromptStudio/ImageToPromptStudio';
+import { CodePenAnalyzerStudio } from '@/components/CodePenAnalyzer/CodePenAnalyzerStudio';
+import { LucianAuroraBackground } from '@/components/Lucian/LucianAuroraBackground';
 import { ToastProvider } from '@/components/ui/Toast';
 import { XRayEditor } from '@/components/ui/XRayEditor';
 
@@ -25,6 +27,7 @@ const PAGE_NAME_MAP: Record<number, string> = {
   3: 'Video to GIF Studio',
   4: 'Background Remover Studio',
   5: 'Image-to-Prompt Studio',
+  6: 'CodePen Analyzer Studio',
 };
 
 function MainAppContent() {
@@ -33,6 +36,9 @@ function MainAppContent() {
 
   return (
     <div className="relative z-10 w-full h-full flex justify-center items-center overflow-hidden p-2 sm:p-5">
+      {/* Lucian UX/UI #319 Cursor-Following Living Aurora Background */}
+      <LucianAuroraBackground />
+
       {/* Ambient background glows */}
       <div className="ambient-glow-1"></div>
       <div className="ambient-glow-2"></div>
@@ -61,6 +67,8 @@ function MainAppContent() {
               <BackgroundRemoverStudio />
             ) : activeNav === 5 ? (
               <ImageToPromptStudio />
+            ) : activeNav === 6 ? (
+              <CodePenAnalyzerStudio />
             ) : (
               <>
                 {/* Top Row: Hero Section + Step-by-Step Flow List */}

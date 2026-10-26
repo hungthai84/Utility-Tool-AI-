@@ -400,3 +400,109 @@ body.theme-emerald {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(140, 130, 180, 0.6);
 }
+
+/* ==========================================================================
+   LUCIAN UX/UI PROMPT THEME TOKENS & BASE RULES (MIT License (c) 2026 Seokwoooo)
+   ========================================================================== */
+:root {
+  --ux-accent: #7c3aed;
+  --ux-accent-2: #38bdf8;
+  --ux-accent-soft: rgba(124, 58, 237, 0.15);
+  --ux-accent-ink: #ffffff;
+  --ux-mint: #10b981;
+  --ux-warn: #f59e0b;
+  --ux-danger: #ef4444;
+  --ux-ease: cubic-bezier(.2, .8, .2, 1);
+  --ux-spring: cubic-bezier(.34, 1.45, .64, 1);
+}
+
+body.theme-dark {
+  --ux-page: #0f0c1f;
+  --ux-surface: #1e1738;
+  --ux-surface-2: #2b1f48;
+  --ux-surface-3: #3b2a60;
+  --ux-ink: #f8fafc;
+  --ux-ink-2: #cbd5e1;
+  --ux-ink-3: #94a3b8;
+  --ux-line: rgba(255, 255, 255, 0.1);
+  --ux-line-2: rgba(255, 255, 255, 0.18);
+  --ux-accent: #a78bfa;
+  --ux-shadow-strong: rgba(0, 0, 0, 0.65);
+}
+
+body.theme-light {
+  --ux-page: #f5f7fd;
+  --ux-surface: #ffffff;
+  --ux-surface-2: #f1f5f9;
+  --ux-surface-3: #e2e8f0;
+  --ux-ink: #0f172a;
+  --ux-ink-2: #334155;
+  --ux-ink-3: #64748b;
+  --ux-line: rgba(203, 213, 225, 0.85);
+  --ux-line-2: rgba(148, 163, 184, 0.5);
+  --ux-accent: #6d28d9;
+  --ux-shadow-strong: rgba(90, 70, 150, 0.2);
+}
+
+body.theme-cyber {
+  --ux-page: #090014;
+  --ux-surface: #17002c;
+  --ux-surface-2: #240046;
+  --ux-surface-3: #3c096c;
+  --ux-ink: #ffffff;
+  --ux-ink-2: #38bdf8;
+  --ux-ink-3: #818cf8;
+  --ux-line: rgba(0, 240, 255, 0.3);
+  --ux-line-2: rgba(0, 240, 255, 0.6);
+  --ux-accent: #00f0ff;
+  --ux-shadow-strong: rgba(0, 240, 255, 0.35);
+}
+
+body.theme-clay {
+  --ux-page: #f0e6ff;
+  --ux-surface: #ffffff;
+  --ux-surface-2: #f8fafc;
+  --ux-surface-3: #f1f5f9;
+  --ux-ink: #0f172a;
+  --ux-ink-2: #334155;
+  --ux-ink-3: #64748b;
+  --ux-line: rgba(226, 232, 240, 0.95);
+  --ux-line-2: rgba(203, 213, 225, 0.9);
+  --ux-accent: #c084fc;
+  --ux-shadow-strong: rgba(180, 170, 210, 0.3);
+}
+
+body.theme-emerald {
+  --ux-page: #06201b;
+  --ux-surface: #0f382c;
+  --ux-surface-2: #184e3f;
+  --ux-surface-3: #1f6350;
+  --ux-ink: #ecfdf5;
+  --ux-ink-2: #a7f3d0;
+  --ux-ink-3: #6ee7b7;
+  --ux-line: rgba(52, 211, 153, 0.25);
+  --ux-line-2: rgba(52, 211, 153, 0.5);
+  --ux-accent: #34d399;
+  --ux-shadow-strong: rgba(0, 0, 0, 0.6);
+}
+
+.ux, .ux *, .ux *::before, .ux *::after {
+  box-sizing: border-box;
+}
+.ux {
+  font-family: inherit;
+  color: var(--ux-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.ux :focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ux, .ux *, .ux *::before, .ux *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+

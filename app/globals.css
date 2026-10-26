@@ -1,0 +1,402 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap');
+
+/* ==========================================================================
+   DESIGN TOKENS & CSS VARIABLES (TYPOGRAPHY & MULTI-THEME SYSTEM)
+   ========================================================================== */
+:root {
+  /* Typography Hierarchy Tokens */
+  --font-family-base: 'Play', sans-serif, system-ui, -apple-system;
+
+  --font-hero: 36px;
+  --font-h1: 32px;
+  --font-h2: 26px;
+  --font-h3: 22px;
+  --font-h4: 18px;
+  --font-h5: 16px;
+  --font-h6: 14px;
+
+  --font-body: 15px;
+  --font-body-sm: 14px;
+  --font-caption: 12px;
+  --font-overline: 12px;
+
+  --font-nav: 14px;
+  --font-button: 14px;
+  --font-label: 13px;
+  --font-input: 14px;
+  --font-card-title: 18px;
+  --font-card: 14px;
+  --font-stat: 28px;
+  --font-stat-label: 12px;
+  --font-code: 13px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --line-heading: 1.2;
+  --line-subheading: 1.3;
+  --line-body: 1.6;
+  --line-compact: 1.4;
+
+  /* Theme Tokens: Dark Glass (Default Theme) */
+  --color-bg-body: linear-gradient(135deg, #0f0c1f 0%, #1e1738 50%, #2b1f48 100%);
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-hover: rgba(255, 255, 255, 0.09);
+  --color-surface-elevated: rgba(30, 23, 55, 0.95);
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(167, 139, 250, 0.45);
+  --color-shadow: rgba(0, 0, 0, 0.5);
+  --color-input-bg: rgba(0, 0, 0, 0.35);
+  --color-input-border: rgba(255, 255, 255, 0.18);
+  --color-input-text: #f8fafc;
+  --color-code-bg: rgba(0, 0, 0, 0.4);
+  --color-code-text: #6ee7b7;
+  --glass-badge-bg: rgba(255, 255, 255, 0.1);
+  --glass-badge-border: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile Responsive Typography Adjustments */
+@media (max-width: 767px) {
+  :root {
+    --font-hero: 28px;
+    --font-h1: 26px;
+    --font-h2: 22px;
+    --font-h3: 20px;
+    --font-h4: 18px;
+    --font-h5: 16px;
+    --font-h6: 14px;
+    --font-card-title: 16px;
+    --font-stat: 24px;
+    --font-input: 16px; /* Prevents mobile Safari auto-zoom */
+  }
+}
+
+/* --------------------------------------------------------------------------
+   THEME TOKEN OVERRIDES (5 DISTINCT UNIFIED THEMES)
+   -------------------------------------------------------------------------- */
+
+/* 1. Theme Dark Glass */
+body.theme-dark {
+  --color-bg-body: linear-gradient(135deg, #0f0c1f 0%, #1e1738 50%, #2b1f48 100%);
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-hover: rgba(255, 255, 255, 0.1);
+  --color-surface-elevated: rgba(30, 23, 55, 0.95);
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(167, 139, 250, 0.5);
+  --color-shadow: rgba(0, 0, 0, 0.5);
+  --color-input-bg: rgba(0, 0, 0, 0.35);
+  --color-input-border: rgba(255, 255, 255, 0.18);
+  --color-input-text: #f8fafc;
+  --color-code-bg: rgba(0, 0, 0, 0.4);
+  --color-code-text: #6ee7b7;
+  --glass-badge-bg: rgba(255, 255, 255, 0.12);
+  --glass-badge-border: rgba(255, 255, 255, 0.22);
+}
+
+/* 2. Theme Light Glass - Refined High Contrast Light Mode */
+body.theme-light {
+  --color-bg-body: linear-gradient(135deg, #e2ebfe 0%, #ede4fe 45%, #fcecf0 100%);
+  --color-surface: rgba(255, 255, 255, 0.82);
+  --color-surface-hover: rgba(255, 255, 255, 0.95);
+  --color-surface-elevated: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #1e293b;
+  --color-text-muted: #475569;
+  --color-border: rgba(203, 213, 225, 0.85);
+  --color-border-hover: rgba(124, 58, 237, 0.5);
+  --color-shadow: rgba(90, 70, 150, 0.15);
+  --color-input-bg: #ffffff;
+  --color-input-border: #cbd5e1;
+  --color-input-text: #0f172a;
+  --color-code-bg: #1e293b;
+  --color-code-text: #34d399;
+  --glass-badge-bg: rgba(241, 245, 249, 0.9);
+  --glass-badge-border: rgba(203, 213, 225, 0.8);
+}
+
+/* 3. Theme Cyber Neon */
+body.theme-cyber {
+  --color-bg-body: linear-gradient(135deg, #090014 0%, #17002c 50%, #00122e 100%);
+  --color-surface: rgba(10, 0, 30, 0.75);
+  --color-surface-hover: rgba(20, 0, 50, 0.9);
+  --color-surface-elevated: rgba(15, 0, 35, 0.98);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #38bdf8;
+  --color-text-muted: #818cf8;
+  --color-border: rgba(0, 240, 255, 0.35);
+  --color-border-hover: rgba(0, 240, 255, 0.85);
+  --color-shadow: rgba(0, 240, 255, 0.3);
+  --color-input-bg: rgba(5, 0, 20, 0.8);
+  --color-input-border: rgba(0, 240, 255, 0.4);
+  --color-input-text: #00f0ff;
+  --color-code-bg: rgba(0, 10, 30, 0.85);
+  --color-code-text: #00f0ff;
+  --glass-badge-bg: rgba(0, 240, 255, 0.15);
+  --glass-badge-border: rgba(0, 240, 255, 0.4);
+}
+
+/* 4. Theme Soft Clay */
+body.theme-clay {
+  --color-bg-body: linear-gradient(135deg, #f0e6ff 0%, #e8f0fe 50%, #ffeaf2 100%);
+  --color-surface: rgba(255, 255, 255, 0.92);
+  --color-surface-hover: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-border: rgba(226, 232, 240, 0.95);
+  --color-border-hover: rgba(168, 85, 247, 0.45);
+  --color-shadow: rgba(180, 170, 210, 0.25);
+  --color-input-bg: #f8fafc;
+  --color-input-border: #cbd5e1;
+  --color-input-text: #0f172a;
+  --color-code-bg: #0f172a;
+  --color-code-text: #a7f3d0;
+  --glass-badge-bg: rgba(241, 245, 249, 0.95);
+  --glass-badge-border: rgba(203, 213, 225, 0.85);
+}
+
+/* 5. Theme Emerald Forest */
+body.theme-emerald {
+  --color-bg-body: linear-gradient(135deg, #06201b 0%, #0f382c 50%, #184e3f 100%);
+  --color-surface: rgba(10, 40, 30, 0.65);
+  --color-surface-hover: rgba(15, 55, 42, 0.8);
+  --color-surface-elevated: rgba(6, 32, 27, 0.95);
+  --color-text-primary: #ecfdf5;
+  --color-text-secondary: #a7f3d0;
+  --color-text-muted: #6ee7b7;
+  --color-border: rgba(52, 211, 153, 0.25);
+  --color-border-hover: rgba(52, 211, 153, 0.65);
+  --color-shadow: rgba(0, 0, 0, 0.5);
+  --color-input-bg: rgba(4, 25, 20, 0.7);
+  --color-input-border: rgba(52, 211, 153, 0.35);
+  --color-input-text: #ecfdf5;
+  --color-code-bg: rgba(2, 20, 15, 0.85);
+  --color-code-text: #a7f3d0;
+  --glass-badge-bg: rgba(16, 185, 129, 0.15);
+  --glass-badge-border: rgba(52, 211, 153, 0.35);
+}
+
+/* ==========================================================================
+   GLOBAL BASE STYLES & ANTI-OVERFLOW DISCIPLINE
+   ========================================================================== */
+@layer base {
+  * {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family-base);
+    background: var(--color-bg-body);
+    color: var(--color-text-primary);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    transition: background 0.5s ease, color 0.3s ease;
+  }
+
+  /* Anti-Overflow Rules for Typography & Elements */
+  p, span, h1, h2, h3, h4, h5, h6, pre, code, div, input, textarea, select {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  img, video, iframe, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Typography Standard Mapping */
+  h1 {
+    font-size: var(--font-h1);
+    font-weight: var(--weight-bold);
+    line-height: var(--line-heading);
+  }
+
+  h2 {
+    font-size: var(--font-h2);
+    font-weight: var(--weight-bold);
+    line-height: var(--line-heading);
+  }
+
+  h3 {
+    font-size: var(--font-h3);
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-subheading);
+  }
+
+  h4 {
+    font-size: var(--font-h4);
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-subheading);
+  }
+
+  p, body {
+    font-size: var(--font-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--line-body);
+  }
+
+  button {
+    font-size: var(--font-button);
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-compact);
+  }
+
+  input, textarea, select {
+    font-size: var(--font-input);
+    font-weight: var(--weight-regular);
+    background-color: var(--color-input-bg);
+    border-color: var(--color-input-border);
+    color: var(--color-input-text);
+  }
+}
+
+/* Ambient Glowing Orbs */
+.ambient-glow-1 {
+  position: fixed;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.5s ease;
+}
+
+.ambient-glow-2 {
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(130px);
+  z-index: 0;
+  pointer-events: none;
+  transition: background 0.5s ease;
+}
+
+.theme-dark .ambient-glow-1 { top: 5%; left: 10%; background: rgba(124, 58, 237, 0.28); }
+.theme-dark .ambient-glow-2 { bottom: 5%; right: 12%; background: rgba(236, 72, 153, 0.22); }
+
+.theme-light .ambient-glow-1 { top: 5%; left: 8%; background: rgba(147, 197, 253, 0.5); }
+.theme-light .ambient-glow-2 { bottom: 8%; right: 10%; background: rgba(244, 114, 182, 0.35); }
+
+.theme-cyber .ambient-glow-1 { top: 2%; left: 5%; background: rgba(0, 240, 255, 0.35); }
+.theme-cyber .ambient-glow-2 { bottom: 5%; right: 5%; background: rgba(255, 0, 128, 0.35); }
+
+.theme-clay .ambient-glow-1 { top: 10%; left: 15%; background: rgba(192, 132, 252, 0.4); }
+.theme-clay .ambient-glow-2 { bottom: 10%; right: 15%; background: rgba(251, 146, 60, 0.35); }
+
+.theme-emerald .ambient-glow-1 { top: 5%; left: 10%; background: rgba(16, 185, 129, 0.3); }
+.theme-emerald .ambient-glow-2 { bottom: 5%; right: 10%; background: rgba(52, 211, 153, 0.25); }
+
+/* Glassmorphism Card Properties */
+.glass-card {
+  position: relative;
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 30px -5px var(--color-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
+}
+
+.glass-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+/* Specular Light Sheen */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 0.75s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+.glass-card:hover::before {
+  left: 140%;
+}
+
+/* Frosted Glass Badge */
+.glass-badge {
+  background: var(--glass-badge-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-badge-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Conic Avatar Ring */
+.avatar-ring {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    #2ea1cb -0.27deg,
+    #6432c5 95.62deg,
+    #c25d8d 169.05deg,
+    #a9ceb2 330.58deg,
+    #2ea1cb 359.73deg,
+    #6432c5 455.63deg
+  );
+  clip-path: path(
+    'M28 1.52794C28 0.684082 28.6847 -0.00434746 29.5273 0.0416656C35.4595 0.365612 41.1501 2.57002 45.763 6.35571C50.7705 10.4653 54.1982 16.184 55.462 22.5375C56.7258 28.8909 55.7475 35.4861 52.6938 41.1991C49.6401 46.9122 44.7 51.3896 38.7151 53.8686C32.7303 56.3476 26.071 56.6748 19.872 54.7943C13.673 52.9139 8.3178 48.9422 4.71885 43.556C1.11989 38.1697 -0.500123 31.7023 0.134828 25.2555C0.71974 19.3168 3.18486 13.7342 7.15049 9.31045C7.71377 8.68211 8.68474 8.68472 9.28143 9.28142V9.28142C9.87813 9.87812 9.87417 10.8426 9.31511 11.4747C5.8472 15.3957 3.6916 20.3201 3.17599 25.555C2.61034 31.2982 4.05355 37.0598 7.25972 41.8582C10.4659 46.6566 15.2366 50.1948 20.7591 51.87C26.2816 53.5453 32.214 53.2538 37.5457 51.0454C42.8774 48.8369 47.2783 44.8481 49.9987 39.7586C52.7192 34.6691 53.5907 28.7937 52.4648 23.1336C51.339 17.4736 48.2854 12.379 43.8244 8.71794C39.7581 5.38083 34.7518 3.42299 29.5271 3.10264C28.6848 3.051 28 2.3718 28 1.52794V1.52794Z'
+  );
+}
+
+.ping-outer {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background-color: #ea4d5f;
+  z-index: 40;
+  animation: ping-online 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping-online {
+  70%, 100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 130, 180, 0.35);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 130, 180, 0.6);
+}

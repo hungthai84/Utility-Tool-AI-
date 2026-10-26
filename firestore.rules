@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global catch-all default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User profile document and subcollections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /projects/{projectId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /story_projects/{projectId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /characters/{characterId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /history/{historyId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}

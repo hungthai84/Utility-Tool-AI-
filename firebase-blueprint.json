@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "user_profile": {
+      "title": "User Profile",
+      "description": "Information about an authenticated user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "themePreference": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "saved_project": {
+      "title": "Saved Utility Project",
+      "description": "User created projects or conversions saved to cloud",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "toolCategory": { "type": "string", "enum": ["image", "video", "speech", "code"] },
+        "stepData": { "type": "string" },
+        "outputContent": { "type": "string" },
+        "tags": { "type": "array" },
+        "isFavorite": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "title", "toolCategory"]
+    },
+    "tool_history": {
+      "title": "Tool Execution History",
+      "description": "Log of tools run by the user for offline/online sync",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "toolId": { "type": "string" },
+        "toolName": { "type": "string" },
+        "inputSummary": { "type": "string" },
+        "outputSummary": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "toolId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user_profile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": "saved_project",
+      "description": "Subcollection of saved utility projects for a user"
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": "tool_history",
+      "description": "Subcollection of tool execution history for a user"
+    }
+  }
+}

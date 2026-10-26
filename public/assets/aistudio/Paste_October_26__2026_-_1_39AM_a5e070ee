@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trung Tâm Tiện Ích - Utility Hub Glassmorphism</title>
+
+  <!-- Google Fonts: Play -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 17 & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+
+  <!-- Clsx Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/clsx@1.2.1/dist/clsx.min.js"></script>
+
+  <!-- Babel Standalone for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Play', sans-serif;
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.5s ease;
+      overflow: hidden;
+      padding: 25px;
+    }
+
+    /* Ambient dynamic backgrounds for Glassmorphism */
+    body.theme-dark {
+      background: linear-gradient(135deg, #0f0c1f 0%, #1e1738 50%, #2b1f48 100%);
+    }
+
+    body.theme-light {
+      background: linear-gradient(135deg, #dce7fe 0%, #ebdffd 45%, #fbe8ec 100%);
+    }
+
+    /* Floating glowing orbs in background to amplify glass refraction */
+    .ambient-glow-1 {
+      position: fixed;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: 0;
+      pointer-events: none;
+      transition: background 0.5s ease;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(130px);
+      z-index: 0;
+      pointer-events: none;
+      transition: background 0.5s ease;
+    }
+
+    .theme-dark .ambient-glow-1 {
+      top: 5%;
+      left: 10%;
+      background: rgba(124, 58, 237, 0.28);
+    }
+    .theme-dark .ambient-glow-2 {
+      bottom: 5%;
+      right: 12%;
+      background: rgba(236, 72, 153, 0.22);
+    }
+
+    .theme-light .ambient-glow-1 {
+      top: 5%;
+      left: 8%;
+      background: rgba(147, 197, 253, 0.5);
+    }
+    .theme-light .ambient-glow-2 {
+      bottom: 8%;
+      right: 10%;
+      background: rgba(244, 114, 182, 0.35);
+    }
+
+    /* Thuộc tính thẻ Kính mờ siêu thực (Glassmorphism Card Properties) */
+    .glass-card {
+      position: relative;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .theme-dark .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .theme-dark .glass-card:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(167, 139, 250, 0.45);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.65), 0 0 25px rgba(139, 92, 246, 0.22), inset 0 1px 2px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-4px);
+    }
+
+    .theme-light .glass-card {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 25px -5px rgba(100, 80, 160, 0.12), inset 0 1px 2px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .theme-light .glass-card:hover {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(167, 139, 250, 0.55);
+      box-shadow: 0 20px 35px -8px rgba(100, 80, 160, 0.2), 0 0 22px rgba(168, 85, 247, 0.18), inset 0 1px 3px 0 #ffffff;
+      transform: translateY(-4px);
+    }
+
+    /* Hiệu ứng vệt sáng phản chiếu ánh kính khi di chuột (Specular Light Sheen) */
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+      );
+      transform: skewX(-25deg);
+      transition: left 0.75s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .glass-card:hover::before {
+      left: 140%;
+    }
+
+    /* Huy hiệu chỉ số kính mờ (Frosted Glass Badge) */
+    .glass-badge {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    /* Conic avatar ring */
+    .avatar-ring {
+      background: conic-gradient(
+        from 0deg at 50% 50%,
+        #2ea1cb -0.27deg,
+        #6432c5 95.62deg,
+        #c25d8d 169.05deg,
+        #a9ceb2 330.58deg,
+        #2ea1cb 359.73deg,
+        #6432c5 455.63deg
+      );
+      clip-path: path(
+        'M28 1.52794C28 0.684082 28.6847 -0.00434746 29.5273 0.0416656C35.4595 0.365612 41.1501 2.57002 45.763 6.35571C50.7705 10.4653 54.1982 16.184 55.462 22.5375C56.7258 28.8909 55.7475 35.4861 52.6938 41.1991C49.6401 46.9122 44.7 51.3896 38.7151 53.8686C32.7303 56.3476 26.071 56.6748 19.872 54.7943C13.673 52.9139 8.3178 48.9422 4.71885 43.556C1.11989 38.1697 -0.500123 31.7023 0.134828 25.2555C0.71974 19.3168 3.18486 13.7342 7.15049 9.31045C7.71377 8.68211 8.68474 8.68472 9.28143 9.28142V9.28142C9.87813 9.87812 9.87417 10.8426 9.31511 11.4747C5.8472 15.3957 3.6916 20.3201 3.17599 25.555C2.61034 31.2982 4.05355 37.0598 7.25972 41.8582C10.4659 46.6566 15.2366 50.1948 20.7591 51.87C26.2816 53.5453 32.214 53.2538 37.5457 51.0454C42.8774 48.8369 47.2783 44.8481 49.9987 39.7586C52.7192 34.6691 53.5907 28.7937 52.4648 23.1336C51.339 17.4736 48.2854 12.379 43.8244 8.71794C39.7581 5.38083 34.7518 3.42299 29.5271 3.10264C28.6848 3.051 28 2.3718 28 1.52794V1.52794Z'
+      );
+    }
+
+    /* Subtle pulsing live indicator */
+    .ping-outer {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background-color: #ea4d5f;
+      z-index: 40;
+      animation: ping-online 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes ping-online {
+      70%,
+      100% {
+        transform: scale(3.5);
+        opacity: 0;
+      }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(140, 130, 180, 0.3);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(140, 130, 180, 0.5);
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <!-- Glowing ambient light sources for glass effect -->
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- React root mount point: Lắp đầy với padding 25px từ body -->
+  <div id="root" class="relative z-10 w-full h-full flex justify-center items-center overflow-hidden"></div>
+
+  <!-- React Script Logic -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const clsx = window.clsx || ((...args) => args.filter(Boolean).join(' '));
+
+    // ==========================================
+    // BỘ ICON VECTOR CHUẨN LUCIDE ICONS (NO WINDOWS EMOJI)
+    // ==========================================
+    const LucideIcon = ({ size = 20, className = '', children, ...props }) => (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        {...props}
+      >
+        {children}
+      </svg>
+    );
+
+    const IconWrench = (p) => (
+      <LucideIcon {...p}>
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </LucideIcon>
+    );
+
+    const IconBoxes = (p) => (
+      <LucideIcon {...p}>
+        <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l6 3.43a2 2 0 0 0 2.06 0l6-3.43a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L12 10.05l-9.03 2.87z" />
+        <path d="m12 10.05 9.03 2.87a2 2 0 0 0 .97-1.71V8a2 2 0 0 0-.97-1.71l-6-3.43a2 2 0 0 0-2.06 0l-6 3.43A2 2 0 0 0 6 8v3.21a2 2 0 0 0 .97 1.71L12 10.05z" />
+        <path d="M12 22V10" />
+      </LucideIcon>
+    );
+
+    const IconListOrdered = (p) => (
+      <LucideIcon {...p}>
+        <line x1="10" x2="21" y1="6" y2="6" />
+        <line x1="10" x2="21" y1="12" y2="12" />
+        <line x1="10" x2="21" y1="18" y2="18" />
+        <path d="M4 6h1v4" />
+        <path d="M4 10h2" />
+        <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
+      </LucideIcon>
+    );
+
+    const IconHistory = (p) => (
+      <LucideIcon {...p}>
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M12 7v5l4 2" />
+      </LucideIcon>
+    );
+
+    const IconZap = (p) => (
+      <LucideIcon {...p}>
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </LucideIcon>
+    );
+
+    const IconSettings = (p) => (
+      <LucideIcon {...p}>
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <circle cx="12" cy="12" r="3" />
+      </LucideIcon>
+    );
+
+    const IconSearch = (p) => (
+      <LucideIcon {...p}>
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" x2="16.65" y1="21" y2="16.65" />
+      </LucideIcon>
+    );
+
+    const IconSun = (p) => (
+      <LucideIcon {...p}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2" />
+        <path d="M12 20v2" />
+        <path d="m4.93 4.93 1.41 1.41" />
+        <path d="m17.66 17.66 1.41 1.41" />
+        <path d="M2 12h2" />
+        <path d="M20 12h2" />
+        <path d="m6.34 17.66-1.41 1.41" />
+        <path d="m19.07 4.93-1.41 1.41" />
+      </LucideIcon>
+    );
+
+    const IconMoon = (p) => (
+      <LucideIcon {...p}>
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+      </LucideIcon>
+    );
+
+    const IconBell = (p) => (
+      <LucideIcon {...p}>
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </LucideIcon>
+    );
+
+    const IconSparkles = (p) => (
+      <LucideIcon {...p}>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="M5 3v4" />
+        <path d="M19 17v4" />
+        <path d="M3 5h4" />
+        <path d="M17 19h4" />
+      </LucideIcon>
+    );
+
+    const IconFolderUp = (p) => (
+      <LucideIcon {...p}>
+        <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+        <polyline points="12 10 12 16" />
+        <polyline points="9 13 12 10 15 13" />
+      </LucideIcon>
+    );
+
+    const IconFileText = (p) => (
+      <LucideIcon {...p}>
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" x2="8" y1="13" y2="13" />
+        <line x1="16" x2="8" y1="17" y2="17" />
+        <line x1="10" x2="8" y1="9" y2="9" />
+      </LucideIcon>
+    );
+
+    const IconVideo = (p) => (
+      <LucideIcon {...p}>
+        <path d="m22 8-6 4 6 4V8Z" />
+        <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
+      </LucideIcon>
+    );
+
+    const IconImage = (p) => (
+      <LucideIcon {...p}>
+        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+        <circle cx="9" cy="9" r="2" />
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+      </LucideIcon>
+    );
+
+    const IconTerminal = (p) => (
+      <LucideIcon {...p}>
+        <polyline points="4 17 10 11 4 5" />
+        <line x1="12" x2="20" y1="19" y2="19" />
+      </LucideIcon>
+    );
+
+    const IconCode2 = (p) => (
+      <LucideIcon {...p}>
+        <polyline points="16 18 22 12 16 6" />
+        <polyline points="8 6 2 12 8 18" />
+      </LucideIcon>
+    );
+
+    const IconSliders = (p) => (
+      <LucideIcon {...p}>
+        <line x1="4" x2="4" y1="21" y2="14" />
+        <line x1="4" x2="4" y1="10" y2="3" />
+        <line x1="12" x2="12" y1="21" y2="12" />
+        <line x1="12" x2="12" y1="8" y2="3" />
+        <line x1="20" x2="20" y1="21" y2="16" />
+        <line x1="20" x2="20" y1="12" y2="3" />
+        <line x1="1" x2="7" y1="14" y2="14" />
+        <line x1="9" x2="15" y1="8" y2="8" />
+        <line x1="17" x2="23" y1="16" y2="16" />
+      </LucideIcon>
+    );
+
+    const IconCloud = (p) => (
+      <LucideIcon {...p}>
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+      </LucideIcon>
+    );
+
+    const IconCheckCircle2 = (p) => (
+      <LucideIcon {...p}>
+        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </LucideIcon>
+    );
+
+    const IconArrowRight = (p) => (
+      <LucideIcon {...p}>
+        <line x1="5" x2="19" y1="12" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+      </LucideIcon>
+    );
+
+    // Fallback image helper cho các công cụ tiện ích
+    const handleImgError = (e, fallbackText = 'Công cụ') => {
+      e.target.onerror = null;
+      e.target.src = `https://placehold.co/400x260/312a52/ffffff?text=${encodeURIComponent(fallbackText)}`;
+    };
+
+    // Sidebar Right: Lối tắt các bộ công cụ phổ biến (sử dụng Lucide Icons)
+    const sidebarRightIcons = [
+      { name: 'Xử lý PDF', background: '#e14856', icon: <IconFileText size={18} className="text-white" />, desc: 'Công cụ PDF' },
+      { name: 'Nén Video', background: '#3b82f6', icon: <IconVideo size={18} className="text-white" />, desc: 'Chuyển đổi Video' },
+      { name: 'Tối ưu Ảnh', background: '#10b981', icon: <IconImage size={18} className="text-white" />, desc: 'Xử lý hình ảnh' },
+      { name: 'Công cụ Mã', background: '#8b5cf6', icon: <IconTerminal size={18} className="text-white" />, desc: 'Dev Utilities' },
+    ];
+
+    // Danh sách Quy trình & Hướng dẫn Tiện ích Step-by-Step
+    const newsList = [
+      {
+        key: 0,
+        title: 'Quy Trình Chuyển Đổi & Nén File',
+        subTitle: 'Chuẩn 3 bước: Tải lên → Cấu hình nén → Xuất file tức thì',
+        image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80',
+        usage: '124.8K lượt dùng',
+        stepCount: '3 Bước',
+        category: 'Quy trình Step',
+        tags: [{ text: 'Tự động', color: '#d94b87' }],
+      },
+      {
+        key: 1,
+        title: 'Trích Xuất Văn Bản OCR Siêu Tốc',
+        subTitle: 'Quét chữ từ hình ảnh & PDF tiếng Việt với độ chính xác 99.8%',
+        image: 'https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=400&q=80',
+        usage: '89.2K lượt dùng',
+        stepCount: '2 Bước',
+        category: 'Trí tuệ AI',
+        tags: [
+          { text: 'Chính xác cao', color: '#6647bf' },
+          { text: 'Bảo mật', color: '#4696b9' },
+        ],
+      },
+    ];
+
+    // Danh sách các Tiện ích Hàng đầu (Step-by-step Utilities)
+    const topSelectionItemList = [
+      {
+        key: '1',
+        title: 'Trình Chuyển Đổi PDF Đa Năng',
+        subTitle: 'Hợp nhất, tách trang, nén dung lượng và đổi đuôi Word/Excel',
+        image: 'https://images.unsplash.com/photo-1544396821-4dd40b938ad3?w=500&q=80',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80',
+        author: 'Đội ngũ Tiện ích',
+        usage: '42.5K sử dụng',
+        stepBadge: 'Quy trình 3 Bước',
+        tags: [
+          { text: 'PDF Suite', color: '#d94b87' },
+          { text: 'Step Flow', color: '#eb8052' },
+        ],
+      },
+      {
+        key: '2',
+        title: 'Nén Video 4K & Chuyển Mã Web',
+        subTitle: 'Giảm tới 85% dung lượng giữ nguyên chất lượng 60 FPS',
+        image: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=500&q=80',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80',
+        author: 'Media Lab VN',
+        usage: '96.1K sử dụng',
+        stepBadge: 'Quy trình 4 Bước',
+        tags: [{ text: 'Đa phương tiện', color: '#70b944' }],
+      },
+      {
+        key: '3',
+        title: 'Tối Ưu & Tách Nền Ảnh AI',
+        subTitle: 'Chuyển định dạng WebP, AVIF, xóa nền mượt mà chỉ 1 click',
+        image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&q=80',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80',
+        author: 'AI Design Tool',
+        usage: '68.4K sử dụng',
+        stepBadge: 'Quy trình 2 Bước',
+        tags: [{ text: 'Tự động AI', color: '#6647bf' }],
+      },
+    ];
+
+    // Danh mục công cụ tiện ích
+    const topSelectionCategories = [
+      'Tiện Ích Đề Xuất',
+      'Xử Lý File & Tài Liệu',
+      'Đồ Họa & Đa Phương Tiện',
+      'Bộ Chuyển Đổi Định Dạng',
+      'Công Cụ Phát Triển & Web',
+    ];
+
+    // Danh sách Lucide Icons tương ứng cho các danh mục tiện ích
+    const topSelectIcons = [
+      <IconBoxes key="grid" size={17} />,
+      <IconFileText key="document" size={17} />,
+      <IconImage key="media" size={17} />,
+      <IconSliders key="convert" size={17} />,
+      <IconCode2 key="code" size={17} />,
+    ];
+
+    // Main App
+    function App() {
+      // Nhận diện và thiết lập mặc định theo giao diện hệ thống (System Theme)
+      const getSystemTheme = () => {
+        if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      };
+
+      const [theme, setTheme] = useState(getSystemTheme); // 'dark' | 'light'
+      const [isManual, setIsManual] = useState(false);
+      const [activeNav, setActiveNav] = useState(0);
+
+      // Tự động đồng bộ khi hệ điều hành thay đổi giữa Dark / Light (nếu người dùng chưa chọn thủ công)
+      useEffect(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemThemeChange = (e) => {
+          if (!isManual) {
+            setTheme(e.matches ? 'dark' : 'light');
+          }
+        };
+
+        if (mediaQuery.addEventListener) {
+          mediaQuery.addEventListener('change', handleSystemThemeChange);
+          return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
+        } else if (mediaQuery.addListener) {
+          mediaQuery.addListener(handleSystemThemeChange);
+          return () => mediaQuery.removeListener(handleSystemThemeChange);
+        }
+      }, [isManual]);
+
+      // Giữ class body đồng bộ cho hiệu ứng chuyển màu nền
+      useEffect(() => {
+        document.body.className = theme === 'dark' ? 'theme-dark' : 'theme-light';
+      }, [theme]);
+
+      const toggleTheme = () => {
+        setIsManual(true);
+        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+      };
+
+      // Theme design tokens
+      const isDark = theme === 'dark';
+
+      return (
+        <div
+          className={clsx(
+            'w-full h-full rounded-[30px] flex overflow-hidden transition-all duration-300 relative',
+            // Glassmorphic Outer Chassis
+            isDark
+              ? 'bg-[#1e1737]/75 backdrop-blur-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] text-slate-100'
+              : 'bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_25px_60px_-15px_rgba(80,60,140,0.18)] text-slate-800'
+          )}
+        >
+          {/* Sidebar Menu Trái */}
+          <SidebarLeft
+            active={activeNav}
+            setActive={setActiveNav}
+            isDark={isDark}
+          />
+
+          {/* Vùng Nội Dung Chính */}
+          <div className="flex-1 flex flex-col h-full pl-6 pr-4 overflow-hidden">
+            <Header
+              theme={theme}
+              toggleTheme={toggleTheme}
+              isDark={isDark}
+            />
+
+            <div className="flex-1 overflow-y-auto pr-3 pb-6 space-y-6">
+              {/* Hàng trên: Hero Tiện ích nổi bật & Quy trình Step-by-Step */}
+              <div className="flex items-start justify-between gap-6">
+                <HeroToolSection isDark={isDark} />
+                <NewsSection isDark={isDark} />
+              </div>
+
+              {/* Hàng dưới: Kho Tiện Ích */}
+              <TopSelection isDark={isDark} />
+            </div>
+          </div>
+
+          {/* Sidebar Phải (Lối tắt công cụ tiện ích) */}
+          <SidebarRight isDark={isDark} />
+        </div>
+      );
+    }
+
+    // Sidebar Menu Trái: Điều hướng các phân hệ công cụ
+    function SidebarLeft({ active, setActive, isDark }) {
+      const menuItems = [
+        {
+          label: 'Kho tiện ích',
+          icon: <IconBoxes size={22} />,
+        },
+        {
+          label: 'Quy trình Step-by-Step',
+          icon: <IconListOrdered size={22} />,
+        },
+        {
+          label: 'Lịch sử & Tệp xuất',
+          icon: <IconHistory size={22} />,
+        },
+        {
+          label: 'Tiện ích Trực quan',
+          badge: true,
+          icon: <IconZap size={22} />,
+        },
+      ];
+
+      return (
+        <aside
+          className={clsx(
+            'w-24 h-full flex flex-col items-center py-7 justify-between transition-colors duration-300 relative border-r',
+            isDark
+              ? 'bg-[#251d42]/60 border-white/10'
+              : 'bg-white/40 border-black/5'
+          )}
+        >
+          {/* Logo Brand Icon chuẩn Lucide */}
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 cursor-pointer bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white font-black text-xl">
+            <IconWrench size={22} className="text-white" />
+          </div>
+
+          {/* Dải Icons Menu điều hướng */}
+          <div
+            className={clsx(
+              'flex flex-col space-y-3 p-2 rounded-3xl backdrop-blur-md transition-all',
+              isDark
+                ? 'bg-white/5 border border-white/10 shadow-inner'
+                : 'bg-black/5 border border-black/5 shadow-inner'
+            )}
+          >
+            {menuItems.map((item, idx) => {
+              const isActive = active === idx;
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => setActive(idx)}
+                  title={item.label}
+                  className={clsx(
+                    'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative group cursor-pointer',
+                    isActive
+                      ? 'bg-gradient-to-b from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-600/40 scale-105'
+                      : isDark
+                      ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-black/5'
+                  )}
+                >
+                  <div className="transition-transform group-hover:scale-110 flex items-center justify-center">
+                    {item.icon}
+                  </div>
+
+                  {/* Active Indicator */}
+                  {isActive && (
+                    <span className="absolute -left-1 w-1.5 h-6 rounded-r-full bg-white"></span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Nút Cài đặt công cụ */}
+          <button
+            title="Cài đặt tiện ích & API"
+            className={clsx(
+              'w-11 h-11 rounded-2xl flex items-center justify-center transition-colors cursor-pointer',
+              isDark
+                ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-black/5'
+            )}
+          >
+            <IconSettings size={20} />
+          </button>
+        </aside>
+      );
+    }
+
+    // Header với Tìm kiếm tiện ích và Chuyển đổi giao diện Sáng / Tối
+    function Header({ theme, toggleTheme, isDark }) {
+      const [searchQuery, setSearchQuery] = useState('');
+
+      return (
+        <header className="h-20 flex items-center justify-between border-b border-white/5 pr-4 flex-shrink-0">
+          {/* Tiêu đề nền tảng Tiện ích */}
+          <div className="flex items-center space-x-3">
+            <span className="text-xl font-black tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+              UTILITY HUB
+            </span>
+            <span
+              className={clsx(
+                'text-xs font-semibold px-2.5 py-0.5 rounded-full border glass-badge',
+                isDark
+                  ? 'bg-purple-900/30 text-purple-300 border-purple-500/30'
+                  : 'bg-purple-100/80 text-purple-700 border-purple-200'
+              )}
+            >
+              TIỆN ÍCH STEP FLOW
+            </span>
+          </div>
+
+          {/* Ô Tìm Kiếm Tiện Ích */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm tiện ích: Nén ảnh, chuyển PDF, OCR, Dev..."
+              className={clsx(
+                'w-80 pl-10 pr-4 py-2 text-sm rounded-full outline-none transition-all duration-300 backdrop-blur-md border shadow-sm',
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-400 focus:bg-white/10 focus:border-indigo-400'
+                  : 'bg-black/5 border-black/10 text-slate-800 placeholder-slate-500 focus:bg-white focus:border-indigo-500'
+              )}
+            />
+            <div className={clsx(
+              'absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center',
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            )}>
+              <IconSearch size={16} />
+            </div>
+          </div>
+
+          {/* Các nút hành động & Theme Toggle */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleTheme}
+              title={`Chuyển sang giao diện ${isDark ? 'Sáng (Light Glass)' : 'Tối (Dark Glass)'}`}
+              className={clsx(
+                'flex items-center space-x-2 px-3 py-1.5 rounded-full backdrop-blur-lg border transition-all duration-300 cursor-pointer shadow-md group glass-badge',
+                isDark
+                  ? 'bg-white/10 border-white/20 text-yellow-300 hover:bg-white/15'
+                  : 'bg-white/80 border-purple-200 text-indigo-700 hover:bg-white'
+              )}
+            >
+              {isDark ? (
+                <>
+                  <IconSun size={15} />
+                  <span className="text-xs font-semibold text-white">Giao diện Sáng</span>
+                </>
+              ) : (
+                <>
+                  <IconMoon size={15} />
+                  <span className="text-xs font-semibold text-slate-800">Giao diện Tối</span>
+                </>
+              )}
+            </button>
+
+            {/* Thông báo cập nhật công cụ */}
+            <button
+              title="Thông báo tiện ích mới"
+              className={clsx(
+                'w-9 h-9 rounded-full flex items-center justify-center border transition-colors cursor-pointer',
+                isDark
+                  ? 'border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+                  : 'border-black/10 text-slate-600 hover:text-slate-900 hover:bg-black/5'
+              )}
+            >
+              <IconBell size={16} />
+            </button>
+
+            {/* Trợ lý AI hỗ trợ tiện ích */}
+            <button
+              title="Trợ lý AI Tiện Ích"
+              className={clsx(
+                'w-9 h-9 rounded-full flex items-center justify-center border transition-colors cursor-pointer relative',
+                isDark
+                  ? 'border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+                  : 'border-black/10 text-slate-600 hover:text-slate-900 hover:bg-black/5'
+              )}
+            >
+              <IconSparkles size={16} className={isDark ? 'text-purple-300' : 'text-purple-600'} />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 absolute top-1.5 right-1.5"></span>
+            </button>
+          </div>
+        </header>
+      );
+    }
+
+    // Tiện ích tâm điểm (Hero Tool Section với Card Glass)
+    function HeroToolSection({ isDark }) {
+      return (
+        <div className="relative flex-[1.4] min-w-0">
+          <div className="glass-card rounded-3xl p-2.5 transition-all duration-300">
+            <div className="relative rounded-2xl overflow-hidden group cursor-pointer">
+              <img
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&q=80"
+                alt="Tiện ích nổi bật"
+                onError={(e) => handleImgError(e, 'Tiện Ích Nổi Bật')}
+                className="w-full h-[230px] object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+
+              {/* Huy hiệu Step-by-Step kính mờ góc trên */}
+              <div className="absolute top-3 left-3 flex items-center space-x-2">
+                <span className="glass-badge bg-indigo-600/85 text-white text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full flex items-center space-x-1.5 shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>STEP-BY-STEP FLOW</span>
+                </span>
+                <span className="glass-badge bg-black/50 text-slate-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                  <IconZap size={13} className="text-amber-300" />
+                  <span>3 BƯỚC HOÀN THÀNH</span>
+                </span>
+              </div>
+
+              {/* Thông tin tiện ích dạng kính gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-4">
+                <span className="text-white text-lg font-bold line-clamp-1 group-hover:text-indigo-300 transition-colors">
+                  Bộ Xử Lý Đa Năng: Nén, Đổi Đuôi & Tối Ưu Tệp Tự Động
+                </span>
+                <div className="flex items-center space-x-3 text-slate-300 text-xs mt-1">
+                  <span className="flex items-center space-x-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1"></span>
+                    <span>Đang sẵn sàng hoạt động</span>
+                  </span>
+                  <span>•</span>
+                  <span>Kéo thả tệp hoặc chọn quy trình mẫu</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mini Widget PiP: Quick Dropzone & Kiểm tra tệp */}
+          <div className="absolute -left-3 -bottom-5 z-20">
+            <div className="relative">
+              <div className="ping-outer" />
+              <div
+                className={clsx(
+                  'glass-card rounded-2xl p-2 shadow-2xl flex items-center space-x-3 w-44',
+                  isDark ? 'bg-[#1e1737]/95' : 'bg-white/95'
+                )}
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
+                  <IconFolderUp size={20} className="text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className={clsx('text-xs font-bold truncate', isDark ? 'text-white' : 'text-slate-900')}>
+                    Thả tệp xử lý
+                  </div>
+                  <div className="text-[10px] text-emerald-400 font-semibold truncate">
+                    Bắt đầu Bước 1/3
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Danh sách Quy trình tiện ích Step-by-Step
+    function NewsSection({ isDark }) {
+      return (
+        <div className="flex flex-col space-y-3.5 flex-1 min-w-[320px]">
+          {newsList.map(({ key, title, subTitle, image, usage, stepCount, category, tags }) => (
+            <div
+              key={key}
+              className="glass-card rounded-3xl p-3.5 cursor-pointer group"
+            >
+              <div className="flex space-x-3.5 items-center">
+                <div className="relative flex-shrink-0 overflow-hidden rounded-2xl">
+                  <img
+                    src={image}
+                    alt={title}
+                    onError={(e) => handleImgError(e, title)}
+                    className="w-24 h-20 object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* Badge số bước quy trình */}
+                  <div className="absolute bottom-1 right-1 glass-badge bg-black/70 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+                    {stepCount}
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400">
+                      {category}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {usage}
+                    </span>
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-sm font-semibold truncate group-hover:text-indigo-400 transition-colors',
+                      isDark ? 'text-white' : 'text-slate-900'
+                    )}
+                  >
+                    {title}
+                  </div>
+                  <div
+                    className={clsx(
+                      'text-xs truncate mt-0.5',
+                      isDark ? 'text-slate-400' : 'text-slate-500'
+                    )}
+                  >
+                    {subTitle}
+                  </div>
+                  <div className="flex space-x-1.5 mt-2.5">
+                    {tags.map(({ text, color }) => (
+                      <span
+                        key={text}
+                        className="glass-badge text-[10px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      >
+                        {text}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Khu vực Kho Tiện Ích Đề Xuất (Lựa chọn hàng đầu)
+    function TopSelection({ isDark }) {
+      const [selectedCat, setSelectedCat] = useState(0);
+
+      return (
+        <div className="mt-4 pt-2">
+          {/* Header Kho Tiện Ích */}
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              className={clsx(
+                'text-2xl font-black tracking-tight',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
+            >
+              Kho Tiện Ích Step-by-Step
+            </h2>
+            <div className="glass-badge flex items-center space-x-2 bg-emerald-600/90 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md shadow-emerald-600/20">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+              <span>SẴN SÀNG SỬ DỤNG</span>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-8">
+            {/* Phân loại tiện ích */}
+            <div className="w-56 flex flex-col space-y-2 flex-shrink-0">
+              {topSelectionCategories.map((category, idx) => {
+                const isActive = selectedCat === idx;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCat(idx)}
+                    className={clsx(
+                      'flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-200 text-left cursor-pointer border glass-badge',
+                      isActive
+                        ? isDark
+                          ? 'bg-indigo-500/25 text-indigo-300 border-indigo-500/40 shadow-sm'
+                          : 'bg-indigo-100 text-indigo-700 border-indigo-300 shadow-sm'
+                        : isDark
+                        ? 'text-slate-400 border-transparent hover:text-white hover:bg-white/5'
+                        : 'text-slate-500 border-transparent hover:text-slate-900 hover:bg-black/5'
+                    )}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      className="w-4 h-4 flex-shrink-0"
+                      fill="currentColor"
+                    >
+                      {topSelectIcons[idx]}
+                    </svg>
+                    <span className="truncate">{category}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Danh sách Thẻ Tiện ích Glassmorphism */}
+            <div className="grid grid-cols-3 gap-4 flex-1">
+              {topSelectionItemList.map((item) => (
+                <div
+                  key={item.key}
+                  className="glass-card rounded-3xl p-3 cursor-pointer group"
+                >
+                  <div className="overflow-hidden rounded-2xl relative mb-3">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      onError={(e) => handleImgError(e, item.title)}
+                      className="w-full h-28 object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+
+                    {/* Huy hiệu số lượt dùng */}
+                    <div className="absolute top-2 right-2 glass-badge bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1">
+                      <span>⚡</span>
+                      <span>{item.usage}</span>
+                    </div>
+
+                    {/* Huy hiệu quy trình step */}
+                    <div className="absolute bottom-2 left-2 glass-badge bg-indigo-950/80 text-indigo-200 text-[9px] font-semibold px-2 py-0.5 rounded-md">
+                      {item.stepBadge}
+                    </div>
+
+                    {/* Nút Khởi chạy tiện ích khi hover */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="px-3.5 py-1.5 rounded-full glass-badge bg-white/30 text-white flex items-center space-x-1.5 text-xs font-bold shadow-xl hover:scale-105 transition-transform">
+                        <span>Bắt đầu</span>
+                        <IconArrowRight size={13} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2.5">
+                    <img
+                      src={item.avatar}
+                      alt={item.author}
+                      onError={(e) => handleImgError(e, 'Tác giả')}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/40 flex-shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={clsx(
+                          'text-xs font-bold truncate group-hover:text-indigo-400 transition-colors',
+                          isDark ? 'text-white' : 'text-slate-900'
+                        )}
+                      >
+                        {item.title}
+                      </div>
+                      <div
+                        className={clsx(
+                          'text-[11px] truncate',
+                          isDark ? 'text-slate-400' : 'text-slate-500'
+                        )}
+                      >
+                        {item.subTitle}
+                      </div>
+                      <div className="flex space-x-1 mt-1.5">
+                        {item.tags.map(({ text, color }) => (
+                          <span
+                            key={text}
+                            className="glass-badge text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase"
+                            style={{ backgroundColor: color }}
+                          >
+                            {text}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Sidebar Phải (Lối tắt khởi động nhanh các công cụ)
+    function SidebarRight({ isDark }) {
+      return (
+        <aside
+          className={clsx(
+            'w-20 h-full flex flex-col items-center py-7 justify-between border-l transition-colors duration-300',
+            isDark
+              ? 'bg-[#1a1433]/70 border-white/10'
+              : 'bg-white/40 border-black/5'
+          )}
+        >
+          {/* User Profile / Status Indicator */}
+          <div className="w-14 h-14 rounded-full p-1 relative cursor-pointer group">
+            <div className="avatar-ring inset-0 absolute transition-transform duration-700 group-hover:rotate-180" />
+            <div className="absolute inset-0 p-1">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80"
+                alt="Hồ sơ người dùng"
+                onError={(e) => handleImgError(e, 'User')}
+                className="w-full h-full rounded-full object-cover shadow-md"
+              />
+            </div>
+          </div>
+
+          {/* Lối tắt công cụ tiện ích (Quick Tools Tray) */}
+          <div className="flex flex-col space-y-3.5">
+            {sidebarRightIcons.map(({ name, background, icon, desc }) => (
+              <button
+                key={name}
+                title={`${name} - ${desc}`}
+                className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95 cursor-pointer text-base"
+                style={{ backgroundColor: background }}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
+
+          {/* Trạng thái bộ xử lý nền (Task Queues) */}
+          <div className="flex flex-col space-y-3">
+            <div
+              title="Tiến trình nén tệp: Đã xong"
+              className="w-10 h-10 rounded-2xl glass-card flex items-center justify-center relative cursor-pointer hover:ring-2 hover:ring-indigo-400 transition-all text-xs"
+            >
+              <IconCheckCircle2 size={18} className="text-emerald-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#1e1737] absolute top-0.5 right-0.5"></span>
+            </div>
+
+            <div
+              title="Đồng bộ đám mây: Sẵn sàng"
+              className="w-10 h-10 rounded-2xl glass-card flex items-center justify-center relative cursor-pointer hover:ring-2 hover:ring-indigo-400 transition-all text-xs"
+            >
+              <IconCloud size={18} className="text-sky-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#1e1737] absolute top-0.5 right-0.5"></span>
+            </div>
+          </div>
+        </aside>
+      );
+    }
+
+    // Mount React App
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

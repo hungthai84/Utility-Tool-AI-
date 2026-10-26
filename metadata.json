@@ -1,0 +1,8 @@
+{
+  "name": "Utility Hub AI Glassmorphism",
+  "description": "Nền tảng tiện ích AI đa năng: Hình ảnh, Video, Giọng nói, Chuyển đổi Code với quy trình Step-by-Step, đồng bộ Firebase thời gian thực và chế độ ngoại tuyến.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
